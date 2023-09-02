@@ -79,36 +79,6 @@ class SpectralCDE:
         self.eigenvalues = eigenvalues[::-1][:self.J_max]
         self.eigenvectors = eigenvectors[:, ::-1][:, :self.J_max] 
         
-    def nystrom_eigendecomposition(self):
-        """
-        Computes an approxfimation of the eigenvalues and eigenvectors of the full K using the Nyström method.
-        See 'Using the Nyström Method to Speed Up Kernel Machines' Section 1.2
-        
-        X_nystrom must be a subset of X, or this will not be consistent.
-        """
-        assert self.X_nystrom.shape[0] >= self.J_max, 'The number of samples must be larger than or equal to the maximum number of spectral basis functions'
-        
-        # Compute kernel matrix of values for nystrom method
-        K = self.kernel(self.X_nystrom, self.X_nystrom)
-            
-        # Compute eigendecomposition of sub matrix
-        nystrom_eigenvalues, nystrom_eigenvectors = eigsh(K, k = self.J_max)
-
-        # Order the Nyström eigenvalues and eigenvectors
-        nystrom_eigenvalues = nystrom_eigenvalues[::-1]
-        nystrom_eigenvectors = ( nystrom_eigenvectors[:, ::-1] ).T
-
-        # Resize the eigenvalues
-        self.eigenvalues = nystrom_eigenvalues * ( self.X.shape[0] / self.X_nystrom.shape[0] )
-
-        # Compute the extrapolation matrix and get the approximate eigenvectors correctly resized
-        E = self.kernel(self.X, self.X_nystrom)
-        self.eigenvectors = E.dot( nystrom_eigenvectors.T ) * np.sqrt( self.X_nystrom.shape[0] / self.X.shape[0] ) * ( 1 / nystrom_eigenvalues)
-        
-        # Set the nystrom X to be the coefficient X for nystrom extension evaluation
-        # We do this as the eigenvectors computed above are estimates of the eigenvectors of the full kernel matrix K(X, X)
-        self.X_nystrom = self.X
-        
     ### COMPUTING TENSOR PRODUCT COEFFS ###
     def _compute_response_basis(self, y, I):
         """Compute the response basis according to the specified method"""
