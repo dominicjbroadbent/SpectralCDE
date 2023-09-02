@@ -17,7 +17,7 @@ from post_process import normalise_density, smooth, sharpen
 from response_basis import fourier_basis, cosine_basis, haar_basis, indicator_basis, legendre_basis
 
 class SpectralCDE:
-    def __init__(self, X_nystrom, X, y, kernel, I_max, J_max, basis_method = 'Fourier', idcs = None):
+    def __init__(self, X_nystrom, X, y, kernel, I_max, J_max, basis_method = 'Fourier'):
         """Initialise the spectral conditional density estimation class"""
         self.X_nystrom = X_nystrom
         self.X = X
@@ -26,11 +26,6 @@ class SpectralCDE:
         self.I_max = I_max
         self.J_max = J_max
         self.basis_method = basis_method       
-        
-        if idcs is None:
-            self.idcs = np.arange(self.X.shape[0])
-        else:
-            self.idcs = idcs
             
         assert isinstance(kernel, BaseKernel), 'The kernel must be an instance of BaseKernel'
         assert basis_method in ['Fourier','Cosine', 'Haar', 'Legendre', 'Indicator'], 'The basis must be one of Fourier, Cosine, Haar, Legendre, Indicator...'
@@ -139,14 +134,14 @@ class SpectralCDE:
     def compute_coefficients(self):
         """Compute Monte Carlo estimates of the spectral CDE coefficients"""
         # Evaluating Fourier basis functions
-        response_basis = self._compute_response_basis(self.y[self.idcs], self.I_max)
+        response_basis = self._compute_response_basis(self.y, self.I_max)
         
         # Evaluating spectral basis functions
         if np.array_equal(self.X_nystrom, self.X):
             # spectral_basis = ( self.eigenvectors.T @ self.K ) * ( np.sqrt(self.X.shape[0]) / self.eigenvalues[:self.J_max] )[:, np.newaxis]
-            spectral_basis = ( self.eigenvectors.T * np.sqrt(self.X.shape[0]) )[:, self.idcs] # Equivalent to above using Kv = lv
+            spectral_basis = ( self.eigenvectors.T * np.sqrt(self.X.shape[0]) ) # Equivalent to above using Kv = lv
         else:
-            spectral_basis = self._compute_spectral_basis(self.X, self.J_max)[:, self.idcs]
+            spectral_basis = self._compute_spectral_basis(self.X, self.J_max)
 
         # Computing Monte Carlo coefficient estimates...
         self.coefficients = ( response_basis[:, np.newaxis, :] * spectral_basis[np.newaxis, :, :] ).mean(axis = 2)
