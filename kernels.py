@@ -59,21 +59,3 @@ class Gaussian(BaseKernel):
         except AttributeError:
             self.sq_dists = cdist(x, x, metric = 'sqeuclidean')
         return np.exp( - 0.5 * self.sq_dists / self.lengthscale)
-    
-class Gaussian_dx(BaseKernel):
-    def __init__(self, lengthscale = 0.5):
-        """Initialise the Gaussian kernel"""
-        self.lengthscale = lengthscale
-        super().__init__()
-        
-    def __call__(self, x, y):
-        """Evaluate the gradient wrt x of k(x, y)"""
-        dists = cdist(x, y, metric = 'euclidean')
-        val = - 1 / self.lengthscale
-        val *= ( x[:, np.newaxis, :] - y[np.newaxis, :, :] ) / dists[:, :, np.newaxis]
-        val *= np.exp( - 0.5 * dists**2 / self.lengthscale )[:, :, np.newaxis]
-        return  val
-    
-    def set_params(self, new_lengthscale):
-        """Set new kernel hyperparameters"""
-        self.lengthscale = new_lengthscale
