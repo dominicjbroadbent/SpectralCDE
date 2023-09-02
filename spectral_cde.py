@@ -164,7 +164,7 @@ class SpectralCDE:
         return loss
     
     ## CROSS VALIDATION ##
-    def cross_validate(self, X_val, y_val, params, verbose, random = [False, 10, 1], nystrom = False):
+    def cross_validate(self, X_val, y_val, params, verbose = True, random = [False, 10, 1]):
         """Tune the conditional density estimate parameters"""
         if random[0] and nystrom:
             raise ValueError('Randomised eigendecomposition and Nystrom method cannot both be used')
@@ -186,8 +186,6 @@ class SpectralCDE:
             t0 = time()
             if random[0]:
                 self.randomised_eigendecomposition(random[1], random[2])
-            elif nystrom:
-                self.nystrom_eigendecomposition()
             else:
                 self.eigendecomposition()
             eigendecomp_time += time() - t0
